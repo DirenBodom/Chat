@@ -1,0 +1,93 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <!--We'll be using JQuery to add data to HTML
+        and bind to certain events since we're not using
+        a framework like Angular or React-->
+    <link rel="stylesheet"
+          href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css"
+          integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB"
+          crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" 
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" 
+            integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" 
+            crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" 
+            integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" 
+            crossorigin="anonymous"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <title>Let's Chat!</title>
+</head>
+    <body>
+        <!--The container class comes from bootrap-->
+        <div class="container">
+            <br>
+            <!--The jumbotron class contains our message sending elements
+                The jumbotron component allows us to showcase specific elements-->
+            <div class="jumbotron">
+                <h2 class="display-4">Send Message</h2>
+                <br>
+                <input id="name" class="form-control" placeholder="Name">
+                <br>
+                <br>
+                <textarea id="message" class="form-control" placeholder="Message"></textarea>
+                <br>
+                <button id="send" class="btn btn-success">Send</button>
+            </div>
+            <!--To display messages; this ID will be used in jQuery-->
+            <div id="messages">
+
+            </div>
+        </div>
+        <script>
+            // Callback function to be called once the document is ready
+            // We will use the shorthand ready even function
+            // Which is just a dollar sign and paranthesis, then inside place your callback
+
+            // This function is synonimous with $(document).ready()
+            $(() => {
+                // Called when the document is ready
+                console.log('Loaded')
+
+                // Initialize socket.io
+                // This will try to make a connection at the same url
+                // where the current page is being hosted
+                var socket = io()
+
+                // Bind the button to the click event and pass a callback function
+                $("#send").click(() => {
+                    var message = { name: $("#name").val(), message: $("#message").val() }
+                    /*
+                     * Each time the user clicks send, create a message object from input
+                     * Add message to the message list in the server
+                     */
+                    postMessage(message)
+                })
+                getMessage()
+
+                //
+                socket.on('message', addMessage)
+            })
+            
+            // Add message, takes in a message object
+            function addMessage(message) {
+                // Access message id and append some html to it
+                $("#messages").append(`<h4> ${message.name}</h4><p>${message.message}</p>`)
+                // Match id, append html
+            }
+            // Gets all the message objects from the url and displays them
+            function getMessage() {
+                // Since addMessage matches the outer function, there's no need for a callback
+                $.get('http://localhost:3000/messages', (data) => {
+                    data.forEach(function (element) {
+                        addMessage(element)
+                    }, this);
+                })
+            }
+            function postMessage(msg) {
+                $.post('http://localhost:3000/messages', msg)
+            }
+        </script>
+    </body>
+</html>
